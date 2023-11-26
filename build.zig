@@ -31,6 +31,7 @@ pub fn build(b: *std.Build) void {
         &.{
             "src/main.c",
             "src/objectPool.c",
+            "src/player.c",
         },
         &.{
             "-std=c99",
@@ -50,12 +51,9 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("shell32");
     exe.linkSystemLibrary("winmm");
 
-    //exe.step.dependOn(&raylib_build.step);
-
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
-
     run_cmd.step.dependOn(b.getInstallStep());
 
     if (b.args) |args| {
@@ -64,4 +62,7 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
+    const raylib_clean = b.step("raylib", "Clean raylib build");
+    raylib_clean.dependOn(&raylib_build.step);
 }

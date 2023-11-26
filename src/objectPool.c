@@ -5,9 +5,23 @@
 #include <string.h>
 #include <stdbool.h>
 
-bool playerGrounded = false;
-
 ObjectPool objectPool = {0};
+
+static Vector2 *GetPosition(int id) {
+    return objectPool.positions + id;
+}
+
+static Vector2 *GetVelocity(int id) {
+    return objectPool.velocities + id;
+}
+
+static Vector2 *GetAcceleration(int id) {
+    return objectPool.accelerations + id;
+}
+
+static Rectangle *GetBounds(int id) {
+    return objectPool.bounds + id;
+}
 
 void InitObjectPool(int count) {
     objectPool.positions = (Vector2 *) malloc(count * sizeof(Vector2));
@@ -35,51 +49,13 @@ void DestroyObjectPool(void) {
 
 void TickObjectPool(float deltaTime) {
     for (int i = 0; i < objectPool.top; ++i) {
-        objectPool.velocities[i].x += objectPool.accelerations[i].x * deltaTime;
-        objectPool.velocities[i].y += objectPool.accelerations[i].y * deltaTime;
-        objectPool.positions[i].x += objectPool.velocities[i].x * deltaTime;
-        objectPool.positions[i].y += objectPool.velocities[i].y * deltaTime;
+        GetVelocity(i)->x += GetAcceleration(i)->x * deltaTime;
+        GetVelocity(i)->y += GetAcceleration(i)->y * deltaTime;
+        GetPosition(i)->x += GetVelocity(i)->x * deltaTime;
+        GetPosition(i)->y += GetVelocity(i)->y * deltaTime;
 
-        objectPool.bounds[i].x = objectPool.positions[i].x - objectPool.bounds[i].width / 2;
-        objectPool.bounds[i].y = objectPool.positions[i].y - objectPool.bounds[i].height / 2;
-
-        Rectangle self = objectPool.bounds[i];
-        for (int j = 0; j < objectPool.top; ++j) {
-            if (i == j) {
-                continue;
-            }
-
-            if (objectPool.velocities[i].x == 0 && objectPool.velocities[i].y == 0) {
-                continue;
-            }
-
-            Rectangle other = objectPool.bounds[j];
-            if (CheckCollisionRecs(self, other)) {
-                Rectangle intersection = GetCollisionRec(self, other);
-
-                float xDirection = objectPool.velocities[i].x > 0 ? 1 : -1;
-                float yDirection = objectPool.velocities[i].y > 0 ? 1 : -1;
-
-                if (intersection.width < intersection.height) {
-                    objectPool.positions[i].x -= intersection.width * xDirection;;
-                    objectPool.velocities[i].x = 0;
-                } else {
-                    objectPool.positions[i].y -= intersection.height * yDirection;
-                    objectPool.velocities[i].y = 0;
-                }
-
-                if (i == 0) {
-                    if (yDirection == 1) {
-                        playerGrounded = true;
-                    } else {
-                        playerGrounded = false;
-                    }
-                }
-            }
-        }
-
-        objectPool.bounds[i].x = objectPool.positions[i].x - objectPool.bounds[i].width / 2;
-        objectPool.bounds[i].y = objectPool.positions[i].y - objectPool.bounds[i].height / 2;
+        GetBounds(i)->x = GetPosition(i)->x - GetBounds(i)->width / 2;
+        GetBounds(i)->y = GetPosition(i)->y - GetBounds(i)->height / 2;
     }
 }
 
@@ -88,11 +64,11 @@ Object CreateObject(int width, int height) {
 
     object.id = objectPool.top;
 
-    object.position = &objectPool.positions[objectPool.top];
-    object.velocity = &objectPool.velocities[objectPool.top];
-    object.acceleration = &objectPool.accelerations[objectPool.top];
+    object.position = GetPosition(objectPool.top);
+    object.velocity = GetVelocity(objectPool.top);
+    object.acceleration = GetAcceleration(objectPool.top);
 
-    object.bounds = &objectPool.bounds[objectPool.top];
+    object.bounds = GetBounds(objectPool.top);
     objectPool.top++;
 
     object.bounds->width = width;

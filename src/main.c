@@ -1,57 +1,34 @@
-#include "stdio.h"
+#include <stdio.h>
 
 #include <stdlib.h>
 
 #include "raylib.h"
 #include "objectPool.h"
+#include "player.h"
 
-extern ObjectPool objectPool;
+long long int frameCount = 0;
 
 const int screenWidth = 800;
 const int screenHeight = 450;
 
-Object player = {0};
-const float gravity = 500.0f;
-const float fallMultiplier = 2.5f;
-
-extern bool playerGrounded;
-
 void DrawBounds(Rectangle *bounds, Color color) {
-    DrawRectangleLines(bounds->x, bounds->y, bounds->width, bounds->height, color);
+    DrawRectangleLines(
+        bounds->x,
+        bounds->y,
+        bounds->width,
+        bounds->height,
+        color
+    );
 }
 
 void DrawRect(Rectangle *bounds, Color color) {
-    DrawRectangle(bounds->x, bounds->y, bounds->width, bounds->height, color);
-}
-
-void PlayerInput(Object *player) {
-    if (IsKeyPressed(KEY_SPACE) && playerGrounded == true) {
-        player->velocity->y = -400;
-        playerGrounded = false;
-    }
-
-    if (IsKeyDown(KEY_A)) {
-        player->velocity->x = -200;
-    }
-
-    if (IsKeyDown(KEY_D)) {
-        player->velocity->x = 200;
-    }
-
-    if (IsKeyReleased(KEY_A) || IsKeyReleased(KEY_D)) {
-        player->velocity->x = 0;
-    }
-}
-
-void PlayerPhysics() {
-    // Variable jump height
-    if (player.velocity->y > 0) {
-        player.acceleration->y = gravity * fallMultiplier;
-    } else if (!IsKeyDown(KEY_SPACE)) {
-        player.acceleration->y = gravity * fallMultiplier;
-    } else {
-        player.acceleration->y = gravity;
-    }
+    DrawRectangle(
+        bounds->x,
+        bounds->y,
+        bounds->width,
+        bounds->height,
+        color
+    );
 }
 
 int main(void) {
@@ -60,7 +37,7 @@ int main(void) {
 
     InitObjectPool(10);
 
-    player = CreateObject(50, 50);
+    Object player = CreateObject(50, 50);
     SetObjectPosition(&player, screenWidth / 2, screenHeight / 2);
 
     Object floor = CreateObject(screenWidth, 10);
@@ -91,7 +68,9 @@ int main(void) {
 
         PlayerInput(&player);
         TickObjectPool(deltaTime);
-        PlayerPhysics();
+        PlayerUpdate(&player, deltaTime);
+
+        frameCount++;
     }
 
     DestroyObjectPool();
