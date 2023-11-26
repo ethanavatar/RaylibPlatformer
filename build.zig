@@ -20,7 +20,7 @@ pub fn build(b: *std.Build) void {
     raylib_build.step.dependOn(&raylib_prebuild.step);
 
     const exe = b.addExecutable(.{
-        .name = "doom-like",
+        .name = "raylib-platformer",
         .target = target,
         .optimize = optimize,
     });
@@ -28,13 +28,15 @@ pub fn build(b: *std.Build) void {
     exe.addIncludePath(.{ .path = "include" });
     exe.addIncludePath(.{ .path = "deps/raylib/build/raylib/include" });
     exe.addCSourceFiles(
-        &.{ "src/main.c" },
+        &.{
+            "src/main.c",
+            "src/objectPool.c",
+        },
         &.{
             "-std=c99",
             "-pedantic",
             "-Wall",
             "-Wextra",
-            "-Werror",
         }
     );
 
@@ -48,7 +50,7 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("shell32");
     exe.linkSystemLibrary("winmm");
 
-    exe.step.dependOn(&raylib_build.step);
+    //exe.step.dependOn(&raylib_build.step);
 
     b.installArtifact(exe);
 
