@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+bool playerGrounded = false;
 
 ObjectPool objectPool = {0};
 
@@ -36,6 +39,44 @@ void TickObjectPool(float deltaTime) {
         objectPool.velocities[i].y += objectPool.accelerations[i].y * deltaTime;
         objectPool.positions[i].x += objectPool.velocities[i].x * deltaTime;
         objectPool.positions[i].y += objectPool.velocities[i].y * deltaTime;
+
+        objectPool.bounds[i].x = objectPool.positions[i].x - objectPool.bounds[i].width / 2;
+        objectPool.bounds[i].y = objectPool.positions[i].y - objectPool.bounds[i].height / 2;
+
+        Rectangle self = objectPool.bounds[i];
+        for (int j = 0; j < objectPool.top; ++j) {
+            if (i == j) {
+                continue;
+            }
+
+            if (objectPool.velocities[i].x == 0 && objectPool.velocities[i].y == 0) {
+                continue;
+            }
+
+            Rectangle other = objectPool.bounds[j];
+            if (CheckCollisionRecs(self, other)) {
+                Rectangle intersection = GetCollisionRec(self, other);
+
+                float xDirection = objectPool.velocities[i].x > 0 ? 1 : -1;
+                float yDirection = objectPool.velocities[i].y > 0 ? 1 : -1;
+
+                if (intersection.width < intersection.height) {
+                    objectPool.positions[i].x -= intersection.width * xDirection;;
+                    objectPool.velocities[i].x = 0;
+                } else {
+                    objectPool.positions[i].y -= intersection.height * yDirection;
+                    objectPool.velocities[i].y = 0;
+                }
+
+                if (i == 0) {
+                    if (yDirection == 1) {
+                        playerGrounded = true;
+                    } else {
+                        playerGrounded = false;
+                    }
+                }
+            }
+        }
 
         objectPool.bounds[i].x = objectPool.positions[i].x - objectPool.bounds[i].width / 2;
         objectPool.bounds[i].y = objectPool.positions[i].y - objectPool.bounds[i].height / 2;
