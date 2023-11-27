@@ -1,38 +1,15 @@
-#include <stdio.h>
-
-#include <stdlib.h>
-
 #include "raylib.h"
 #include "objectPool.h"
 #include "player.h"
+#include "render.h"
 
 long long int frameCount = 0;
 
 const int screenWidth = 800;
-const int screenHeight = 450;
-
-void DrawBounds(Rectangle *bounds, Color color) {
-    DrawRectangleLines(
-        bounds->x,
-        bounds->y,
-        bounds->width,
-        bounds->height,
-        color
-    );
-}
-
-void DrawRect(Rectangle *bounds, Color color) {
-    DrawRectangle(
-        bounds->x,
-        bounds->y,
-        bounds->width,
-        bounds->height,
-        color
-    );
-}
+const int screenHeight = 600;
 
 int main(void) {
-    InitWindow(screenWidth, screenHeight, "Hello, World!");
+    InitWindow(screenWidth, screenHeight, "Hello, Sailor!");
     SetTargetFPS(60);
 
     InitObjectPool(10);

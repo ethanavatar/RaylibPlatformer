@@ -32,6 +32,7 @@ pub fn build(b: *std.Build) void {
             "src/main.c",
             "src/objectPool.c",
             "src/player.c",
+            "src/render.c",
         },
         &.{
             "-std=c99",
@@ -63,6 +64,6 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
-    const raylib_clean = b.step("raylib", "Clean raylib build");
+    const raylib_clean = b.step("raylib", "Raylib build");
     raylib_clean.dependOn(&raylib_build.step);
 }

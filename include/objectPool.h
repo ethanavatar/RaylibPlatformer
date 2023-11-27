@@ -25,6 +25,7 @@ typedef struct {
 } Object;
 
 Object CreateObject(int width, int height);
-void SetObjectPosition(Object *object, int x, int y);
+void SetObjectPosition(Object *const object, int x, int y);
 
 #endif // !OBJECTPOOL_H
+

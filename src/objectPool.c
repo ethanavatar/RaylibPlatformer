@@ -24,7 +24,7 @@ static Rectangle *GetBounds(int id) {
 }
 
 void InitObjectPool(int count) {
-    objectPool.positions = (Vector2 *) malloc(count * sizeof(Vector2));
+    objectPool.positions = (Vector2 *const) malloc(count * sizeof(Vector2));
     memset(objectPool.positions, 0, count * sizeof(Vector2));
 
     objectPool.velocities = (Vector2 *) malloc(count * sizeof(Vector2));
@@ -77,7 +77,7 @@ Object CreateObject(int width, int height) {
     return object;
 }
 
-void SetObjectPosition(Object *object, int x, int y) {
+void SetObjectPosition(Object *const object, int x, int y) {
     object->position->x = x;
     object->position->y = y;
 }

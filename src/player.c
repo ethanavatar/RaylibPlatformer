@@ -14,7 +14,7 @@ int airJumpCount = 0;
 const float gravity = 500.0f;
 const float fallMultiplier = 2.5f;
 
-void PlayerInput(Object *player) {
+void PlayerInput(Object *const player) {
 
     if (IsKeyPressed(KEY_SPACE) && canJump) {
         player->velocity->y = -400;
@@ -38,7 +38,7 @@ void PlayerInput(Object *player) {
     }
 }
 
-void PlayerUpdate(Object *player, float deltaTime) {
+void PlayerUpdate(Object *const player, float deltaTime) {
     // Variable jump height
     if (player->velocity->y > 0) {
         player->acceleration->y = gravity * fallMultiplier;

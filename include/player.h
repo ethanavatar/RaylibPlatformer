@@ -7,4 +7,5 @@
 void PlayerInput(Object *player);
 void PlayerUpdate(Object *player, float deltaTime);
 
-#endif // PLAYER_H
+#endif // !PLAYER_H
+
