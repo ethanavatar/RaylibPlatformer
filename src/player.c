@@ -5,47 +5,25 @@
 
 extern ObjectPool objectPool;
 
-bool playerGrounded = false;
-bool canJump = false;
-const float coyoteTime = 0.5f;
+bool grounded = false;
+bool jumpReleased = false;
 float coyoteTimer = 0.0f;
-int airJumpCount = 0;
+bool canJump = false;
 
+const float coyoteTime = 0.125f;
 const float gravity = 500.0f;
-const float fallMultiplier = 2.5f;
+const float fallingGravityMultiplier = 2.5f;
 
-const float dashDistance = 100.0f;
-const float dashTime = 0.1f;
-float dashTimer = 0.0f;
-bool isDashing = false;
-
-typedef enum {
-    LEFT,
-    RIGHT
-    UP,
-    DOWN,
-} Direction4;
-
-typedef enum {
-    LEFT,
-    RIGHT,
-    UP,
-    UP_LEFT,
-    UP_RIGHT,
-    DOWN,
-    DOWN_LEFT,
-    DOWN_RIGHT
-} Direction8;
-
-void PlayerInput(Object *const player) {
+static void PlayerInput(Object *const player) {
 
     if (IsKeyPressed(KEY_SPACE) && canJump) {
         player->velocity->y = -400;
         canJump = false;
+        jumpReleased = false;
+    }
 
-        if (playerGrounded == false) {
-            airJumpCount++;
-        }
+    if (IsKeyReleased(KEY_SPACE)) {
+        jumpReleased = true;
     }
 
     if (IsKeyDown(KEY_A)) {
@@ -61,60 +39,86 @@ void PlayerInput(Object *const player) {
     }
 }
 
-void PlayerUpdate(Object *const player, float deltaTime) {
-    // Variable jump height
+static void CoyoteTimer(float deltaTime) {
+    if (grounded) {
+        coyoteTimer = 0.0f;
+        canJump = true;
+        return;
+    }
+
+    coyoteTimer += deltaTime;
+    if (coyoteTimer >= coyoteTime) {
+        canJump = false;
+    }
+}
+
+static void VariableGravity(Object *const player) {
     if (player->velocity->y > 0) {
-        player->acceleration->y = gravity * fallMultiplier;
-    } else if (!IsKeyDown(KEY_SPACE)) {
-        player->acceleration->y = gravity * fallMultiplier;
+        player->acceleration->y = gravity * fallingGravityMultiplier;
+    } else if (jumpReleased) {
+        player->acceleration->y = gravity * fallingGravityMultiplier;
     } else {
         player->acceleration->y = gravity;
     }
 
-    playerGrounded = false;
+    if (grounded) {
+        jumpReleased = false;
+    }
+}
 
-    Rectangle self = *player->bounds;
+static void SideCollision(Object *const player, float intersectionWidth) {
+    float direction = player->velocity->x > 0 ? 1 : -1;
+    player->position->x -= intersectionWidth * direction;
+}
+
+static void VerticalCollision(Object *const player, float intersectionHeight) {
+    float direction = player->velocity->y > 0 ? 1 : -1;
+
+    if (direction > 0) {
+        grounded = true;
+    }
+
+    player->position->y -= intersectionHeight * direction;
+    player->velocity->y = 0;
+}
+
+static void Collisions(Object *const player) {
+    Vector2 *position = player->position;
+    Vector2 *velocity = player->velocity;
+    Rectangle bounds = *player->bounds;
+    grounded = false;
+
     for (int i = 0; i < objectPool.top; ++i) {
         if (i == player->id) {
             continue;
         }
 
-        if (player->velocity->x == 0 && player->velocity->y == 0) {
+        if (velocity->x == 0 && velocity->y == 0) {
             continue;
         }
 
         Rectangle other = objectPool.bounds[i];
-        if (CheckCollisionRecs(self, other)) {
-            Rectangle intersection = GetCollisionRec(self, other);
-
-            if (intersection.width == 0 || intersection.height == 0) {
-                continue;
-            }
-
-            float xDirection = player->velocity->x > 0 ? 1 : -1;
-            float yDirection = player->velocity->y > 0 ? 1 : -1;
-
-            if (intersection.width < intersection.height) {
-                player->position->x -= intersection.width * xDirection;;
-                player->velocity->x = 0;
-            } else {
-                player->position->y -= intersection.height * yDirection;
-                player->velocity->y = 0;
-
-                playerGrounded = true;
-            }
+        if (!CheckCollisionRecs(bounds, other)) {
+            continue;
         }
 
-        if (playerGrounded == false) {
-            canJump = false;
-            coyoteTimer += deltaTime;
-            if (airJumpCount == 0 && coyoteTimer < coyoteTime) {
-                canJump = true;
-            }
+        Rectangle intersection = GetCollisionRec(bounds, other);
+        if (intersection.width == 0 || intersection.height == 0) {
+            continue;
+        }
+
+        bool sideCollision = intersection.width < intersection.height;
+        if (sideCollision) {
+            SideCollision(player, intersection.width);
         } else {
-            coyoteTimer = 0.0f;
-            canJump = true;
-            airJumpCount = 0;
+            VerticalCollision(player, intersection.height);
         }
     }
+}
+
+void PlayerUpdate(Object *const player, float deltaTime) {
+    Collisions(player);
+    CoyoteTimer(deltaTime);
+    PlayerInput(player);
+    VariableGravity(player);
 }

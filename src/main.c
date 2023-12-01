@@ -43,7 +43,6 @@ int main(void) {
             DrawRect(floor.bounds, GRAY);
         EndDrawing();
 
-        PlayerInput(&player);
         TickObjectPool(deltaTime);
         PlayerUpdate(&player, deltaTime);
 
