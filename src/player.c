@@ -14,6 +14,29 @@ int airJumpCount = 0;
 const float gravity = 500.0f;
 const float fallMultiplier = 2.5f;
 
+const float dashDistance = 100.0f;
+const float dashTime = 0.1f;
+float dashTimer = 0.0f;
+bool isDashing = false;
+
+typedef enum {
+    LEFT,
+    RIGHT
+    UP,
+    DOWN,
+} Direction4;
+
+typedef enum {
+    LEFT,
+    RIGHT,
+    UP,
+    UP_LEFT,
+    UP_RIGHT,
+    DOWN,
+    DOWN_LEFT,
+    DOWN_RIGHT
+} Direction8;
+
 void PlayerInput(Object *const player) {
 
     if (IsKeyPressed(KEY_SPACE) && canJump) {
